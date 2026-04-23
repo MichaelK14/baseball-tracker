@@ -1,0 +1,126 @@
+{% extends 'core/base.html' %}
+{% block title %}Record Game{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div>
+    <h2 class="mb-0">{{ game.date }} — {% if game.is_home %}Home{% else %}Away{% endif %} vs {{ game.opponent }}</h2>
+    <span class="text-muted">Live Pitch Entry</span>
+  </div>
+</div>
+<div class="row g-4">
+  <div class="col-md-6">
+    {% if current_ab %}
+    <div class="card p-3 mb-3 border-success">
+      <h5>Current At-Bat: {{ current_ab.player }} — Inning {{ current_ab.inning }}</h5>
+      <p class="mb-2 text-muted">Pitches thrown: {{ current_ab.pitches.count }}</p>
+      <form method="post" class="mb-3">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="add_pitch">
+        <input type="hidden" name="balls" value="0">
+        <input type="hidden" name="strikes" value="0">
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <select name="pitch_type" class="form-select">
+              {% for code, label in pitch_types %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-6">
+            <input type="number" name="velocity" class="form-control" placeholder="Velocity (mph)">
+          </div>
+        </div>
+        <div class="d-grid gap-2">
+          <div class="btn-group">
+            <button type="submit" name="pitch_result" value="BALL" class="btn btn-outline-primary btn-lg">Ball</button>
+            <button type="submit" name="pitch_result" value="STRIKE_S" class="btn btn-outline-danger btn-lg">Strike (S)</button>
+            <button type="submit" name="pitch_result" value="STRIKE_L" class="btn btn-outline-danger btn-lg">Strike (L)</button>
+          </div>
+          <div class="btn-group">
+            <button type="submit" name="pitch_result" value="FOUL" class="btn btn-outline-warning btn-lg">Foul</button>
+            <button type="submit" name="pitch_result" value="IN_PLAY" class="btn btn-outline-success btn-lg">In Play</button>
+          </div>
+        </div>
+      </form>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="end_at_bat">
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <select name="ab_result" class="form-select">
+              {% for code, label in ab_results %}
+              {% if code %}
+              <option value="{{ code }}">{{ label }}</option>
+              {% endif %}
+              {% endfor %}
+            </select>
+          </div>
+          <div class="col-3">
+            <input type="number" name="rbi" class="form-control" placeholder="RBI" value="0" min="0" max="4">
+          </div>
+          <div class="col-3 d-flex align-items-center">
+            <div class="form-check">
+              <input class="form-check-input" type="checkbox" name="runs_scored" id="runscored">
+              <label class="form-check-label" for="runscored">Scored</label>
+            </div>
+          </div>
+        </div>
+        <button type="submit" class="btn btn-dark w-100">End At-Bat</button>
+      </form>
+    </div>
+    {% endif %}
+    <div class="card p-3 mb-3">
+      <h6>Start New At-Bat</h6>
+      <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="new_at_bat">
+        <select name="player_id" class="form-select">
+          {% for entry in lineup %}
+          <option value="{{ entry.player.pk }}">{{ entry.batting_order }}. {{ entry.player }}</option>
+          {% endfor %}
+        </select>
+        <input type="number" name="inning" class="form-control" style="width:90px" placeholder="Inning" value="1" min="1">
+        <button type="submit" class="btn btn-success">Start</button>
+      </form>
+    </div>
+    <div class="card p-3 border-dark">
+      <h6>End Game</h6>
+      <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="end_game">
+        <div class="row g-2 mb-2">
+          <div class="col-6">
+            <label class="form-label small">Our Score</label>
+            <input type="number" name="our_score" class="form-control" value="{{ game.our_score }}" min="0">
+          </div>
+          <div class="col-6">
+            <label class="form-label small">Their Score</label>
+            <input type="number" name="opponent_score" class="form-control" value="{{ game.opponent_score }}" min="0">
+          </div>
+        </div>
+        <button type="submit" class="btn btn-dark w-100">Save Final Score & View Summary</button>
+      </form>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3">
+      <h5>At-Bat Log</h5>
+      {% for ab in at_bats %}
+      <div class="mb-2 border-bottom pb-2">
+        <strong>Inn {{ ab.inning }} — {{ ab.player }}</strong>
+        {% if ab.result %}<span class="badge bg-secondary ms-1">{{ ab.get_result_display }}</span>{% endif %}
+        <div class="text-muted small">
+          {% for p in ab.pitches.all %}
+          <span class="badge {% if p.result == 'BALL' %}bg-primary{% elif 'STRIKE' in p.result %}bg-danger{% else %}bg-secondary{% endif %} me-1">
+            {{ p.pitch_number }}: {{ p.get_result_display }}
+          </span>
+          {% endfor %}
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-muted">No at-bats recorded yet.</p>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+{% endblock %}
