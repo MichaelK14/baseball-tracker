@@ -1,0 +1,68 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Dashboard</h2>
+  <a href="{% url 'new_game' %}" class="btn btn-success">+ New Game</a>
+</div>
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <div class="fs-1 fw-bold text-success">{{ wins }}</div>
+      <div class="text-muted">Wins</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <div class="fs-1 fw-bold text-danger">{{ losses }}</div>
+      <div class="text-muted">Losses</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <div class="fs-1 fw-bold">{{ total }}</div>
+      <div class="text-muted">Games Played</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center p-3">
+      <div class="fs-1 fw-bold text-primary">{{ players.count }}</div>
+      <div class="text-muted">Active Players</div>
+    </div>
+  </div>
+</div>
+<h5 class="mb-3">Recent Games</h5>
+<div class="card">
+  <table class="table table-hover mb-0">
+    <thead class="table-dark">
+      <tr><th>Date</th><th>Opponent</th><th>Location</th><th>Score</th><th>Result</th><th></th></tr>
+    </thead>
+    <tbody>
+      {% for game in recent_games %}
+      <tr>
+        <td>{{ game.date }}</td>
+        <td>{{ game.opponent }}</td>
+        <td>{% if game.is_home %}Home{% else %}Away{% endif %}</td>
+        <td>{{ game.our_score }} – {{ game.opponent_score }}</td>
+        <td>
+          {% if game.is_complete %}
+            <span class="badge {% if game.result == 'W' %}bg-success{% elif game.result == 'L' %}bg-danger{% else %}bg-secondary{% endif %}">{{ game.result }}</span>
+          {% else %}
+            <span class="badge bg-warning text-dark">In Progress</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if game.is_complete %}
+            <a href="{% url 'game_summary' game.pk %}" class="btn btn-sm btn-outline-secondary">Summary</a>
+          {% else %}
+            <a href="{% url 'record_game' game.pk %}" class="btn btn-sm btn-outline-success">Continue</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted py-3">No games yet — start one above!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

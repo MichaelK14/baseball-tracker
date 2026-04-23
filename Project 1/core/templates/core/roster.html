@@ -1,0 +1,32 @@
+{% extends 'core/base.html' %}
+{% block title %}Roster{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2>Roster</h2>
+  <a href="{% url 'add_player' %}" class="btn btn-success">+ Add Player</a>
+</div>
+<div class="card">
+  <table class="table table-hover mb-0">
+    <thead class="table-dark">
+      <tr><th>#</th><th>Name</th><th>Position</th><th>Status</th><th>Stats</th><th>Actions</th></tr>
+    </thead>
+    <tbody>
+      {% for player in players %}
+      <tr>
+        <td><strong>{{ player.jersey_number }}</strong></td>
+        <td>{{ player.first_name }} {{ player.last_name }}</td>
+        <td>{{ player.get_position_display }}</td>
+        <td>{% if player.is_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}</td>
+        <td><a href="{% url 'player_stats' player.pk %}" class="btn btn-sm btn-outline-primary">View Stats</a></td>
+        <td>
+          <a href="{% url 'edit_player' player.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+          <a href="{% url 'delete_player' player.pk %}" class="btn btn-sm btn-outline-danger">Remove</a>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" class="text-center text-muted py-3">No players yet — add your first player!</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

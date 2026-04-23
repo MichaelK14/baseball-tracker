@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+{% block title %}Set Lineup{% endblock %}
+{% block content %}
+<h2 class="mb-1">Set Lineup</h2>
+<p class="text-muted mb-4">{{ game.date }} — {% if game.is_home %}Home{% else %}Away{% endif %} vs {{ game.opponent }}</p>
+<form method="post">
+  {% csrf_token %}
+  <div class="card p-4">
+    <table class="table">
+      <thead><tr><th>Order</th><th>Player</th><th>Position</th></tr></thead>
+      <tbody>
+        {% for spot in spots %}
+        <tr>
+          <td class="fw-bold align-middle">{{ spot }}</td>
+          <td>
+            <select name="player_{{ spot }}" class="form-select">
+              <option value="">-- Select Player --</option>
+              {% for player in players %}
+              <option value="{{ player.pk }}">{{ player }}</option>
+              {% endfor %}
+            </select>
+          </td>
+          <td>
+            <select name="position_{{ spot }}" class="form-select">
+              <option value="P">Pitcher</option>
+              <option value="C">Catcher</option>
+              <option value="1B">1st Base</option>
+              <option value="2B">2nd Base</option>
+              <option value="3B">3rd Base</option>
+              <option value="SS">Shortstop</option>
+              <option value="LF">Left Field</option>
+              <option value="CF">Center Field</option>
+              <option value="RF">Right Field</option>
+              <option value="DH">DH</option>
+            </select>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <button type="submit" class="btn btn-success btn-lg">Save Lineup & Start Game</button>
+  </div>
+</form>
+{% endblock %}
